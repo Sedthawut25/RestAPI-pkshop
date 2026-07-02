@@ -11,6 +11,7 @@ public record UpsertProductRequest(
         Long categoryId,
         @NotNull BigDecimal price,
         @NotNull BigDecimal importCostAvg,
-        String imageUrl,      // ✅ เพิ่ม
-        Boolean isActive
+        String imageUrl,
+        Boolean isActive,
+        String description
 ) {}

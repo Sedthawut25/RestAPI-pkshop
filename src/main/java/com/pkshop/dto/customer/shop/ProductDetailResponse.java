@@ -11,5 +11,6 @@ public record ProductDetailResponse(
         Integer stockQty,
         String categoryName,
         String imageUrl,
+        String description,
         List<String> fitments // "BMW 3 Series (2016-2020)"
 ) {}

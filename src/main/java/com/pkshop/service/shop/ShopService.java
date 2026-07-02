@@ -90,7 +90,6 @@ public class ShopService {
                         .toList()
         );
 
-        // ✅ สำคัญ: imageUrl ต้องมาก่อน fitments ตาม record
         return new ProductDetailResponse(
                 p.getId(),
                 p.getSku(),
@@ -98,8 +97,9 @@ public class ShopService {
                 p.getPrice(),
                 p.getStockQty(),
                 p.getCategory() != null ? p.getCategory().getName() : null,
-                p.getImageUrl(),   // ✅ imageUrl
-                fitments           // ✅ fitments
+                p.getImageUrl(),
+                p.getDescription(),
+                fitments
         );
     }
 

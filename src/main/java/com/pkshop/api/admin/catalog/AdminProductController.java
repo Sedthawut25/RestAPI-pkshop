@@ -74,8 +74,8 @@ public class AdminProductController {
         p.setPrice(req.price());
         p.setImportCostAvg(req.importCostAvg());
         p.setIsActive(req.isActive() == null ? Boolean.TRUE : req.isActive());
+        p.setDescription(req.description());
 
-        // ✅ NEW: imageUrl
         if (req.imageUrl() == null || req.imageUrl().isBlank()) {
             p.setImageUrl(null);
         } else {
@@ -103,13 +103,14 @@ public class AdminProductController {
                 p.getId(),
                 p.getSku(),
                 p.getName(),
+                p.getDescription(),
                 categoryId,
                 categoryName,
                 category,
                 p.getPrice(),
                 p.getImportCostAvg(),
                 p.getStockQty(),
-                p.getImageUrl(),   // ✅ NEW: ส่ง imageUrl ออกไปให้ UI
+                p.getImageUrl(),
                 active
         );
     }

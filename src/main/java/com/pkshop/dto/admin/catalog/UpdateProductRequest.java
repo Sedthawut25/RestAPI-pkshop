@@ -12,5 +12,6 @@ public record UpdateProductRequest(
         @NotNull BigDecimal price,
         @NotNull BigDecimal importCostAvg,
         String imageUrl,
-        Boolean isActive
+        Boolean isActive,
+        String description
 ) {}
