@@ -29,7 +29,7 @@ public class FileUploadController {
 
             if(!uploadDir.exists()) {
 
-                boolean isCreated = uploadDir.mkdir();
+                boolean isCreated = uploadDir.mkdirs();
                 if(!isCreated && !uploadDir.exists()) {
                     log.error("ไม่สามรถสร้างโฟลเดอร์เก็บรูปภาพได้: {}", uploadDirStr);
                 }

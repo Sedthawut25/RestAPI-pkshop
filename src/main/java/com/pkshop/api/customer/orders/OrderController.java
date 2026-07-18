@@ -1,4 +1,4 @@
-package com.pkshop.api.customer.orders;
+/*package com.pkshop.api.customer.orders;
 
 import com.pkshop.common.response.ApiResponse;
 import com.pkshop.domain.user.entity.User;
@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/customer")
+@RequestMapping("/api/customer/orders")
 public class OrderController {
 
     private final OrderService orderService;
@@ -32,3 +32,4 @@ public class OrderController {
         return ApiResponse.ok("Order created", orderService.createOrderFromCart(currentUser(), req));
     }
 }
+*/

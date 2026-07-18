@@ -71,16 +71,28 @@ public class StripeCheckoutService {
         return session.getUrl();
     }
 
-    public void refundOrder(String paymentIntentId) throws Exception {
+    public void refundOrder(String paymentIntentId, BigDecimal amount) throws Exception {
 
         if (paymentIntentId == null || paymentIntentId.isBlank()) {
             throw new IllegalArgumentException("ไม่พบ Payment Intent ID สำหรับคืนเงิน");
         }
 
-        RefundCreateParams params = RefundCreateParams.builder()
-                .setPaymentIntent(paymentIntentId)
-                .build();
+        RefundCreateParams params;
 
+        if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
+
+            long amountInCents = amount.multiply(new BigDecimal("100")).longValue();
+            params = RefundCreateParams.builder()
+                    .setPaymentIntent(paymentIntentId)
+                    .setAmount(amountInCents)
+                    .build();
+
+        } else {
+
+            params = RefundCreateParams.builder()
+                    .setPaymentIntent(paymentIntentId)
+                    .build();
+        }
         Refund refund = Refund.create(params);
 
         System.out.println("\n===============Stripe Refund Success===============");
@@ -88,3 +100,5 @@ public class StripeCheckoutService {
         System.out.println("Status : " + refund.getStatus());
     }
 }
+
+//เหลือแก้ขอคืนเงินแค่สินค้านั้นในออเดอร์

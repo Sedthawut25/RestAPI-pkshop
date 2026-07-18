@@ -19,7 +19,7 @@ public class DashboardRepository {
     }
 
     private static final String SALES_STATUSES =
-            "('PAID','PACKING','SHIPPED','DELIVERED')";
+            "('PAID','PACKING','SHIPPED','DELIVERED','PARTIALLY_REFUNDED')";
 
     private boolean hasDateRange(LocalDate from, LocalDate to) {
         return from != null && to != null;
@@ -51,21 +51,20 @@ public class DashboardRepository {
     public BigDecimal sumRevenue(LocalDate from, LocalDate to) {
 
         String sql = """
-            SELECT COALESCE(SUM(grand_total),0)
-            FROM orders
-            WHERE status IN
+            SELECT COALESCE(SUM(
+                o.grand_total - COALESCE((
+                    SELECT SUM(cc.refund_amount)
+                    FROM customer_claims cc
+                    WHERE cc.order_id = o.id AND cc.status = 'APPROVED'
+                ), 0)
+            ), 0)
+            FROM orders o
+            WHERE o.status IN
         """ + SALES_STATUSES;
 
         if (hasDateRange(from, to)) {
-
-            sql += " AND DATE(created_at) BETWEEN ? AND ?";
-
-            return jdbc.queryForObject(
-                    sql,
-                    BigDecimal.class,
-                    Date.valueOf(from),
-                    Date.valueOf(to)
-            );
+            sql += " AND DATE(o.created_at) BETWEEN ? AND ?";
+            return jdbc.queryForObject(sql, BigDecimal.class, Date.valueOf(from), Date.valueOf(to));
         }
 
         return jdbc.queryForObject(sql, BigDecimal.class);
@@ -136,73 +135,65 @@ public class DashboardRepository {
      =========================================================
     */
 
-    public List<Map<String, Object>> salesDaily(
-            LocalDate from,
-            LocalDate to
-    ) {
-
+    public List<Map<String, Object>> salesDaily(LocalDate from, LocalDate to) {
         String sql = """
             SELECT
-                DATE(created_at) AS d,
-                COUNT(*) AS orders,
-                COALESCE(SUM(grand_total),0) AS revenue
-            FROM orders
-            WHERE status IN
+                DATE(o.created_at) AS d,
+                COUNT(o.id) AS orders,
+                COALESCE(SUM(
+                    o.grand_total - COALESCE((
+                        SELECT SUM(cc.refund_amount)
+                        FROM customer_claims cc
+                        WHERE cc.order_id = o.id AND cc.status = 'APPROVED'
+                    ), 0)
+                ), 0) AS revenue
+            FROM orders o
+            WHERE o.status IN
         """ + SALES_STATUSES;
 
         if (hasDateRange(from, to)) {
-            sql += " AND DATE(created_at) BETWEEN ? AND ?";
+            sql += " AND DATE(o.created_at) BETWEEN ? AND ?";
         }
 
         sql += """
-            GROUP BY DATE(created_at)
+            GROUP BY DATE(o.created_at)
             ORDER BY d ASC
         """;
 
         if (hasDateRange(from, to)) {
-
-            return jdbc.queryForList(
-                    sql,
-                    Date.valueOf(from),
-                    Date.valueOf(to)
-            );
+            return jdbc.queryForList(sql, Date.valueOf(from), Date.valueOf(to));
         }
-
         return jdbc.queryForList(sql);
     }
 
-    public List<Map<String, Object>> salesMonthly(
-            LocalDate from,
-            LocalDate to
-    ) {
-
+    public List<Map<String, Object>> salesMonthly(LocalDate from, LocalDate to) {
         String sql = """
             SELECT
-                DATE_FORMAT(created_at, '%Y-%m') AS m,
-                COUNT(*) AS orders,
-                COALESCE(SUM(grand_total),0) AS revenue
-            FROM orders
-            WHERE status IN
+                DATE_FORMAT(o.created_at, '%Y-%m') AS m,
+                COUNT(o.id) AS orders,
+                COALESCE(SUM(
+                    o.grand_total - COALESCE((
+                        SELECT SUM(cc.refund_amount)
+                        FROM customer_claims cc
+                        WHERE cc.order_id = o.id AND cc.status = 'APPROVED'
+                    ), 0)
+                ), 0) AS revenue
+            FROM orders o
+            WHERE o.status IN
         """ + SALES_STATUSES;
 
         if (hasDateRange(from, to)) {
-            sql += " AND DATE(created_at) BETWEEN ? AND ?";
+            sql += " AND DATE(o.created_at) BETWEEN ? AND ?";
         }
 
         sql += """
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            GROUP BY DATE_FORMAT(o.created_at, '%Y-%m')
             ORDER BY m ASC
         """;
 
         if (hasDateRange(from, to)) {
-
-            return jdbc.queryForList(
-                    sql,
-                    Date.valueOf(from),
-                    Date.valueOf(to)
-            );
+            return jdbc.queryForList(sql, Date.valueOf(from), Date.valueOf(to));
         }
-
         return jdbc.queryForList(sql);
     }
 

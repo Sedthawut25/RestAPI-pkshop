@@ -12,4 +12,6 @@ import java.util.List;
 public interface CustomerClaimRepository extends JpaRepository<CustomerClaim, Long> {
 
     List<CustomerClaim> findByCustomerOrderByCreatedAtDesc(User customer);
+
+    List<CustomerClaim> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
 }

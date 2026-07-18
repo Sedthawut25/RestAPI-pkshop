@@ -27,6 +27,9 @@ public class CustomerClaim {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
+    @Column(name = "product_name")
+    private String productName;
+
     @Column(nullable = false)
     private Integer quantity;
 
@@ -40,6 +43,8 @@ public class CustomerClaim {
     @Column(nullable = false, length = 30)
     private String status;
 
+    private String imageUrl;
+
     @Column(nullable = false , columnDefinition = "TEXT")
     private String description;
 
@@ -48,6 +53,15 @@ public class CustomerClaim {
 
     @Column(name = "refund_amount")
     private BigDecimal refundAmount;
+
+    @Column(name = "replacement_order_id")
+    private Long replacementOrderId;
+
+    @Transient
+    private String replacementTrackingNumber;
+
+    @Transient
+    private String replacementShippingProvider;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

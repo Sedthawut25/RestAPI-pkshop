@@ -96,7 +96,6 @@ public class OrderService {
         // ===== SHIPPING =====
         BigDecimal shippingFee = new BigDecimal("1500.00");
 
-        // ===== PROMOTION =====
         BigDecimal discount = BigDecimal.ZERO;
         Promotion promo = null;
 
@@ -222,6 +221,14 @@ public class OrderService {
 
             promotionUsageRepo.save(usage);
         }
+        String checkoutUrl;
+        try {
+            checkoutUrl = checkoutService.createCheckoutSession(order);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new BadRequestException("ไม่สามารถสร้างเซสชั่นการชำระเงินได้: "+e.getMessage());
+        }
 
         return new OrderSummaryResponse(
                 order.getId(),
@@ -230,7 +237,8 @@ public class OrderService {
                 order.getSubtotal(),
                 order.getShippingFee(),
                 order.getPromotionDiscount(),
-                order.getGrandTotal()
+                order.getGrandTotal(),
+                checkoutUrl
         );
     }
 
@@ -335,7 +343,7 @@ public class OrderService {
         if(order.getPaymentIntentId() != null && !order.getPaymentIntentId().isBlank()) {
             try {
                 System.out.println("กำลังดำเนินการคืนเงินให้ Order: " + order.getOrderNumber());
-                checkoutService.refundOrder(order.getPaymentIntentId());
+                checkoutService.refundOrder(order.getPaymentIntentId(),null);
             }
             catch (Exception e) {
                 e.printStackTrace();

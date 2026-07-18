@@ -7,10 +7,7 @@ import com.pkshop.service.claims.CustomerClaimService;
 import com.stripe.service.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customer/claims")
@@ -29,5 +26,12 @@ public class CustomerClaimController {
         customerClaimService.submitClaim(request,user);
 
         return ApiResponse.ok("ส่งคำขอเคลมสำเร็จ", null);
+    }
+
+    @GetMapping
+    public ApiResponse<?> getMyClaims() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var claims = customerClaimService.getMyClaims(user.getId());
+        return ApiResponse.ok("ดึงประวัติการเคลมสำเร็จ", claims);
     }
 }

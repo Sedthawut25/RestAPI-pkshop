@@ -14,3 +14,6 @@ public class  PkshopApplication {
         SpringApplication.run(PkshopApplication.class, args);
     }
 }
+
+// แก้ไข stripe ไม่บันทึก payment_Intent  \
+//หาโค้ดที่สร้างการอัปเดตสถานะ หลังจ่ายเงินเพื่อแก้ไขปัญหานี้

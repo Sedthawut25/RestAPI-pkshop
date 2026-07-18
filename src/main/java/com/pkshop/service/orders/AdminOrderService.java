@@ -274,7 +274,7 @@ public class AdminOrderService {
                     try {
                         System.out.println("========== ADMIN CANCEL ORDER ==========");
                         System.out.println("กำลังดำเนินการดีดเงินคืนให้ Order รหัส: " + order.getOrderNumber());
-                        checkoutService.refundOrder(order.getPaymentIntentId());
+                        checkoutService.refundOrder(order.getPaymentIntentId(),null);
                     } catch (Exception e) {
                         e.printStackTrace();
                         throw new BadRequestException("Stripe ผิดพลาด ไม่สามารถส่งเงินคืนได้: " + e.getMessage());

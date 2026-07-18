@@ -5,27 +5,26 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-
 public class CreateClaimRequest {
 
-    @NotNull(message = "กรุณาระบบรหัสออเดอร์")
+    @NotNull(message = "กรุณาระบุ Order ID")
     private Long orderId;
 
-    @NotNull(message = "กรุณาระบบรหัสสินค้า")
+    @NotNull(message = "กรุณาระบุ Product ID")
     private Long productId;
 
-    @NotNull(message = "กรุณาระบุจำนวน")
-    @Min(value = 1, message = "จำนวนต้องไม่น้อยกว่า 1")
+    private String productName;
+
+    @Min(value = 1, message = "จำนวนที่เคลมต้องมากกว่า 0")
     private Integer quantity;
 
-    @NotBlank(message = "กรุณาระบุประเภทการเคลม")
+    @NotBlank(message = "กรุณาระบุความต้องการ (เช่น คืนเงิน, เปลี่ยนสินค้า)")
     private String claimType;
 
     @NotBlank(message = "กรุณาระบุเหตุผล")
     private String description;
 
-    private List<String> fileUrls;
+    // ลิงก์รูปภาพที่อัปโหลดสำเร็จแล้ว (ส่งมาจากหน้าบ้าน)
+    private String imageUrl;
 }

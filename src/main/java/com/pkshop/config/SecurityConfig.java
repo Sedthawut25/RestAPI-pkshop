@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/upload/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll()
                         .requestMatchers("/", "/error", "/favicon.ico").permitAll()

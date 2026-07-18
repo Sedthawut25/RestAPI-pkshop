@@ -9,5 +9,6 @@ public record OrderSummaryResponse(
         BigDecimal subtotal,
         BigDecimal shippingFee,
         BigDecimal discount,
-        BigDecimal grandTotal
+        BigDecimal grandTotal,
+        String checkoutUrl
 ) {}
