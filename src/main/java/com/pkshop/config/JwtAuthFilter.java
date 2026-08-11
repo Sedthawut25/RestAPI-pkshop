@@ -30,6 +30,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // 🚀 เพิ่มโค้ดส่วนนี้: ถ้าเป็นการเรียก API หมวด Auth (Login/Register/Google) ให้ข้ามการตรวจ Token ทันที
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth")) {
+            chain.doFilter(request, response);
+            return; // จบการทำงานของ Filter ทันที ปล่อยให้ไปที่ Controller
+        }
+
         String auth = request.getHeader("Authorization");
         if (auth == null || !auth.startsWith("Bearer ")) {
             chain.doFilter(request, response);

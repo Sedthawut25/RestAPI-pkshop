@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/supplier/**").hasRole("SUPPLIER")
                         .requestMatchers("/api/customs/**").hasRole("CUSTOMS")
+                        .requestMatchers("/api/auth/**").permitAll()
 
                         .anyRequest().authenticated()
                 )

@@ -14,12 +14,14 @@ import com.pkshop.domain.user.entity.User;
 import com.pkshop.domain.user.repository.CustomerProfileRepository;
 import com.pkshop.domain.user.repository.RoleRepository;
 import com.pkshop.domain.user.repository.UserRepository;
+import com.pkshop.auth.dto.GoogleLoginRequest;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -29,19 +31,22 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final CustomerProfileRepository customerProfileRepository;
+    private final ClerkService clerkService;
 
     public AuthService(
             UserRepository userRepo,
             RoleRepository roleRepo,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            CustomerProfileRepository customerProfileRepository
+            CustomerProfileRepository customerProfileRepository,
+            ClerkService clerkService
     ) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.customerProfileRepository = customerProfileRepository;
+        this.clerkService = clerkService;
     }
 
     public AuthResponse register(RegisterRequest req) {
@@ -129,6 +134,76 @@ public class AuthService {
                         .stream()
                         .map(Role::getName)
                         .toList()
+        );
+    }
+
+    public AuthResponse googleLogin(GoogleLoginRequest req) {
+        System.out.println("--- เริ่มกระบวนการ Google Login ใน Service ---");
+        System.out.println("อีเมลที่ส่งมาจาก Frontend: " + req.getEmail());
+
+        String verifiedEmail = null;
+        try {
+            System.out.println("กำลังตรวจสอบ Token กับ Clerk...");
+            verifiedEmail = clerkService.verifyTokenAndGetEmail(req.getClerkToken());
+            System.out.println("✅ ตรวจสอบ Token สำเร็จ! อีเมลที่ได้จาก Clerk คือ: " + verifiedEmail);
+        } catch (Exception e) {
+            System.out.println("❌ พังจุดที่ 1: ตรวจสอบ Clerk Token ไม่ผ่าน! สาเหตุ: " + e.getMessage());
+            throw new UnauthorizedException("Clerk Token Invalid: " + e.getMessage());
+        }
+
+        // ป้องกันคน Hack อีเมลจาก frontend ตรงกับที่ clerk บอก
+        if(verifiedEmail == null || !verifiedEmail.equalsIgnoreCase(req.getEmail())) {
+            System.out.println("❌ พังจุดที่ 2: อีเมลไม่ตรงกัน! (Frontend: " + req.getEmail() + " | Clerk: " + verifiedEmail + ")");
+            throw new UnauthorizedException("อีเมลไม่ตรงกับเจ้าของ token");
+        }
+
+        String email = req.getEmail().toLowerCase();
+
+        Optional<User> optionalUser = userRepo.findByEmail(email);
+        User user;
+        if (optionalUser.isPresent()) {
+            user = optionalUser.get();
+
+            System.out.println("เจอ User ในระบบแล้ว สถานะคือ: " + user.getStatus());
+            if(user.getStatus() == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+                System.out.println("❌ พังจุดที่ 3: สถานะ User ไม่ใช่ ACTIVE!");
+                throw new UnauthorizedException("User is not active");
+            }
+
+            user.setLastLoginAt(Instant.now());
+            userRepo.save(user);
+        }
+        else {
+            System.out.println("ไม่เจอ User ในระบบ กำลังสร้างใหม่...");
+            user = new User();
+            user.setEmail(email);
+            user.setFullName(req.getFullName());
+            user.setAuthProvider("GOOGLE");
+
+            user.setLastLoginAt(Instant.now());
+            user.setStatus("ACTIVE");
+
+            Role role = roleRepo.findByName("CUSTOMER")
+                    .orElseThrow(() -> new BadRequestException("Role CUSTOMER not found"));
+            user.getRoles().add(role);
+            userRepo.save(user);
+
+            CustomerProfile profile = new CustomerProfile();
+            profile.setUser(user);
+            profile.setPoints(0);
+            profile.setCreatedAt(LocalDateTime.now());
+            customerProfileRepository.save(profile);
+            System.out.println("✅ สร้าง User ใหม่สำเร็จ!");
+        }
+
+        System.out.println("✅ ออก Token ของระบบเราและเตรียมส่งคืน Frontend");
+        String token = jwtService.generateAccessToken(user);
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getRoles().stream().map(Role::getName).toList()
         );
     }
 }

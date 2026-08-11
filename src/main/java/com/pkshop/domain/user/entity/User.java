@@ -27,8 +27,12 @@ public class User {
     @Column(nullable = false, unique = true, length = 191)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "auth_provider", length = 20)
+    private String authProvider = "LOCAL";
+
+    @Column(name = "password_hash")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonIgnore
     private String passwordHash;
 
     @Column(name = "full_name", nullable = false, length = 150)
@@ -37,7 +41,7 @@ public class User {
     private String phone;
 
     @Column(nullable = false)
-    private String status = "ACTIVE"; // ACTIVE, SUSPENDED
+    private String status = "ACTIVE";
 
     @Column(name = "last_login_at")
     private Instant lastLoginAt;

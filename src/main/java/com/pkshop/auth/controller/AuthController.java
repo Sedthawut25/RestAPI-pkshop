@@ -1,6 +1,7 @@
 package com.pkshop.auth.controller;
 
 import com.pkshop.auth.dto.AuthResponse;
+import com.pkshop.auth.dto.GoogleLoginRequest;
 import com.pkshop.auth.dto.LoginRequest;
 import com.pkshop.auth.dto.RegisterRequest;
 import com.pkshop.auth.service.AuthService;
@@ -26,5 +27,11 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
         return ApiResponse.ok("Logged in", authService.login(req));
+    }
+
+    @PostMapping("/google")
+    public ApiResponse<AuthResponse> googleLogin (@Valid @RequestBody GoogleLoginRequest req) {
+        System.out.println("✅✅✅ ทะลุเข้า Controller มาได้แล้ว!!! ข้อมูล: " + req.getEmail());
+        return ApiResponse.ok("Google Login Successful", authService.googleLogin(req));
     }
 }
