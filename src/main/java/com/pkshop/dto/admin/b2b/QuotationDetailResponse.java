@@ -12,6 +12,7 @@ public record QuotationDetailResponse(
         LocalDate validUntil,
         String remarks,
         Instant createdAt,
+        Long importLotId,
         List<Item> items
 ) {
     public record Item(

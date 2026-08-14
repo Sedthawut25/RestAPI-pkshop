@@ -7,11 +7,13 @@ import com.pkshop.domain.b2b.entity.SupplierQuotation;
 import com.pkshop.domain.b2b.repository.PurchaseOrderItemRepository;
 import com.pkshop.domain.b2b.repository.PurchaseOrderRepository;
 import com.pkshop.domain.b2b.repository.SupplierQuotationRepository;
+import com.pkshop.domain.importflow.repository.ImportLotRepository;
 import com.pkshop.domain.user.entity.User;
 import com.pkshop.domain.user.repository.UserRepository;
 import com.pkshop.dto.admin.b2b.AddPoItemRequest;
 import com.pkshop.dto.admin.b2b.CreatePoRequest;
 import com.pkshop.dto.admin.b2b.DecideQuotationRequest;
+import com.pkshop.dto.admin.b2b.QuotationDetailResponse;
 import com.pkshop.service.b2b.B2bService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,19 +34,22 @@ public class AdminPoController {
     private final PurchaseOrderRepository poRepo;
     private final PurchaseOrderItemRepository poItemRepo;
     private final SupplierQuotationRepository quotationRepository;
+    private final ImportLotRepository importLotRepo;
 
     public AdminPoController(
             B2bService b2bService,
             UserRepository userRepo,
             PurchaseOrderRepository poRepo,
             PurchaseOrderItemRepository poItemRepo,
-            SupplierQuotationRepository quotationRepository
+            SupplierQuotationRepository quotationRepository,
+            ImportLotRepository importLotRepo
     ) {
         this.b2bService = b2bService;
         this.userRepo = userRepo;
         this.poRepo = poRepo;
         this.poItemRepo = poItemRepo;
         this.quotationRepository = quotationRepository;
+        this.importLotRepo = importLotRepo;
     }
 
     private User currentUser() {
@@ -116,14 +121,49 @@ public class AdminPoController {
     }
 
     @GetMapping("/{poId}/quotations/{quotationId}")
-    public ApiResponse<SupplierQuotation> getQuotationDetail(
+    public ApiResponse<QuotationDetailResponse> getQuotationDetail(
             @PathVariable Long poId,
             @PathVariable Long quotationId
     ) {
         SupplierQuotation q = quotationRepository
                 .findByIdAndPurchaseOrderId(quotationId, poId)
-                .orElseThrow();
-        return ApiResponse.ok("Quotation detail", q);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quotation not found"));
+
+        Long importLotId = null;
+        var lotOptional = importLotRepo.findBySupplierQuotationId(quotationId);
+        if (lotOptional.isPresent()) {
+            importLotId = lotOptional.get().getId();
+        }
+
+        // 2. แปลง Item
+        List<QuotationDetailResponse.Item> items = q.getItems().stream()
+                .map(item -> new QuotationDetailResponse.Item(
+                        item.getId(),
+                        item.getProduct().getId(),
+                        item.getProduct().getSku(),
+                        item.getProduct().getName(),
+                        item.getQty(),
+                        item.getQuotedUnitCost(),
+                        item.getLeadTimeDays()
+                ))
+                .toList();
+
+        String statusStr = q.getStatus() != null ? String.valueOf(q.getStatus()) : "UNKNOWN";
+
+        String remarksStr = null;
+
+        QuotationDetailResponse responseDTO = new QuotationDetailResponse(
+                q.getId(),
+                q.getQuotationNumber(),
+                statusStr,
+                q.getValidUntil(),
+                remarksStr,
+                q.getCreatedAt(),
+                importLotId,
+                items
+        );
+
+        return ApiResponse.ok("Quotation detail", responseDTO);
     }
 
     @PostMapping("/{poId}/quotations/{quotationId}/decision")

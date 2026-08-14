@@ -3,6 +3,8 @@ package com.pkshop.config;
 import com.pkshop.domain.user.entity.User;
 import com.pkshop.domain.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,13 +32,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // 🚀 เพิ่มโค้ดส่วนนี้: ถ้าเป็นการเรียก API หมวด Auth (Login/Register/Google) ให้ข้ามการตรวจ Token ทันที
+        // 1. ถ้าเป็นการเรียก API หมวด Auth (Login/Register) ให้ข้ามการตรวจ Token ทันที
         String path = request.getRequestURI();
         if (path.startsWith("/api/auth")) {
             chain.doFilter(request, response);
-            return; // จบการทำงานของ Filter ทันที ปล่อยให้ไปที่ Controller
+            return;
         }
 
+        // 2. ตรวจสอบ Header
         String auth = request.getHeader("Authorization");
         if (auth == null || !auth.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -58,6 +61,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        }
+        catch (ExpiredJwtException e) {
+            // 🚀 ถ้า Token หมดอายุ ให้ตอบกลับเป็น 401 ทันที และหยุดการทำงาน
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\": \"JWT Token expired. Please login again.\"}");
+            return;
+        }
+        catch (JwtException e) {
+            // ถ้า Token ผิดรูปแบบ หรือปลอมแปลง
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\": \"Invalid JWT Token.\"}");
+            return;
         }
         catch (Exception e) {
             e.printStackTrace();

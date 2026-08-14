@@ -1,5 +1,6 @@
 package com.pkshop.service.inventory;
 
+import com.pkshop.common.exception.BadRequestException;
 import com.pkshop.domain.catalog.entity.Product;
 import com.pkshop.domain.catalog.repository.ProductRepository;
 import com.pkshop.domain.inventory.entity.InventoryTransaction;
@@ -75,6 +76,35 @@ public class InventoryService {
         txnRepo.save(txn);
 
         product.setStockQty(product.getStockQty() - qty);
+        productRepo.save(product);
+    }
+
+    @Transactional
+    public void adjustStock(Long productId, int qtyChange, String txnType,
+                            String refTable, Long refId, String note, User actor) {
+        if (qtyChange == 0) return;
+
+        Product product = productRepo.findById(productId).orElseThrow();
+
+        int newQty = product.getStockQty() + qtyChange;
+        if (newQty < 0) {
+            throw new com.pkshop.common.exception.BadRequestException(
+                    "สต็อกไม่เพียงพอ (คงเหลือ " + product.getStockQty() + " ชิ้น)");
+        }
+
+        InventoryTransaction txn = new InventoryTransaction();
+        txn.setProduct(product);
+        txn.setTxnType(txnType);
+        txn.setRefTable(refTable);
+        txn.setRefId(refId);
+        txn.setQtyChange(qtyChange);
+        txn.setUnitCost(product.getImportCostAvg());
+        txn.setNote(note);
+        txn.setCreatedBy(actor);
+        txn.setCreatedAt(Instant.now());
+        txnRepo.save(txn);
+
+        product.setStockQty(newQty);
         productRepo.save(product);
     }
 

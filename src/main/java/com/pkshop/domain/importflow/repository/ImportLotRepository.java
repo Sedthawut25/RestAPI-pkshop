@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface ImportLotRepository extends JpaRepository<ImportLot, Long> {
     Optional<ImportLot> findByLotNumber(String lotNumber);
+
+    Optional<ImportLot> findBySupplierQuotationId(Long quotationId);
 }

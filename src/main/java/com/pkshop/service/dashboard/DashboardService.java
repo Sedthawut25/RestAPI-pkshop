@@ -1,20 +1,25 @@
 package com.pkshop.service.dashboard;
 
+import com.pkshop.domain.b2b.repository.SupplierClaimRepository;
 import com.pkshop.domain.sales.repository.DashboardRepository;
 import com.pkshop.dto.admin.dashboard.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
 public class DashboardService {
 
     private final DashboardRepository repo;
+    private final SupplierClaimRepository supplierClaimRepository;
 
-    public DashboardService(DashboardRepository repo) {
+    public DashboardService(DashboardRepository repo, SupplierClaimRepository supplierClaimRepository) {
         this.repo = repo;
+        this.supplierClaimRepository = supplierClaimRepository;
     }
 
     public DashboardSummaryResponse summary(LocalDate from, LocalDate to, int lowStockThreshold) {
@@ -45,8 +50,24 @@ public class DashboardService {
         long lowStockCount = repo.countLowStock(lowStockThreshold);
         long pendingShip = repo.countPendingShipment();
 
+        // 1. คำนวณยอดซื้อนำเข้าเข้าทั้งหมด
         BigDecimal importExpense = repo.sumImportExpense(from, to);
         if (importExpense == null) {
+            importExpense = BigDecimal.ZERO;
+        }
+
+        // 2. คำนวณยอดเงินคืนจากซัพพลายเออร์ (เฉพาะ RETURN_REFUND และสถานะ APPROVED/COMPLETED)
+        LocalDateTime fromDateTime = from.atStartOfDay();
+        LocalDateTime toDateTime = to.atTime(LocalTime.MAX);
+
+        BigDecimal totalClaimRefund = supplierClaimRepository.sumApprovedRefundAmount(fromDateTime, toDateTime);
+        if (totalClaimRefund == null) {
+            totalClaimRefund = BigDecimal.ZERO;
+        }
+
+        // 3. หักลบยอดเงินคืนออกจากรายจ่ายนำเข้าสุทธิ
+        importExpense = importExpense.subtract(totalClaimRefund);
+        if (importExpense.compareTo(BigDecimal.ZERO) < 0) {
             importExpense = BigDecimal.ZERO;
         }
 
@@ -133,16 +154,16 @@ public class DashboardService {
     }
 
     public List<DeadStockResponse> deadStock(int days, int limit) {
-            return repo.deadStock(days, limit).stream().map(r -> {
-                Number daySinceObj = (Number) r.get("day_since_last_stocked");
-                int daySince = (daySinceObj != null)  ? daySinceObj.intValue() : -1;
+        return repo.deadStock(days, limit).stream().map(r -> {
+            Number daySinceObj = (Number) r.get("day_since_last_stocked");
+            int daySince = (daySinceObj != null)  ? daySinceObj.intValue() : -1;
 
-                return new DeadStockResponse(
-                        ((Number) r.get("product_id")).longValue(),
-                        ((String) r.get("product_name")),
-                        ((Number) r.get("stock_qty")).intValue(),
-                        daySince
-                );
-            }).toList();
+            return new DeadStockResponse(
+                    ((Number) r.get("product_id")).longValue(),
+                    ((String) r.get("product_name")),
+                    ((Number) r.get("stock_qty")).intValue(),
+                    daySince
+            );
+        }).toList();
     }
 }
