@@ -112,6 +112,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Flyway Core สำหรับจัดการ Database -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- (ถ้าคุณใช้ MySQL) ต้องใส่ตัวนี้เพิ่มด้วยครับ -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
 
     </dependencies>
 
