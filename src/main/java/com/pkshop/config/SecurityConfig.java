@@ -29,11 +29,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
+        // ✅ เพิ่ม Domain ของ Vercel เข้าไปใน Allowed Origins
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "https://pkshop-auto-part.vercel.app",
+                "https://pkshop-auto-part-git-main-kengsos-projects.vercel.app"
         ));
-        config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+
+        // หากต้องการอนุญาตทุก sub-domain ของ vercel ในอนาคต ให้ใช้ Pattern แทนได้:
+        // config.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.vercel.app"));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
@@ -46,10 +53,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/webhooks/stripe")
-                )
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // ✅ รวมไว้บรรทัดเดียว
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(f -> f.disable())
@@ -60,9 +64,9 @@ public class SecurityConfig {
                         .requestMatchers("/", "/error", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/customer/promotions/**").permitAll()
-                        
-                        .requestMatchers("/api/upload/**").hasAnyRole("ADMIN", "CUSTOMER") 
-                        
+
+                        .requestMatchers("/api/upload/**").hasAnyRole("ADMIN", "CUSTOMER")
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/supplier/**").hasRole("SUPPLIER")
