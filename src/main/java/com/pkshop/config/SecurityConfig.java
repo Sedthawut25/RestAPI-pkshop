@@ -2,18 +2,19 @@ package com.pkshop.config;
 
 import java.util.List;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -25,19 +26,12 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    // ✅ บังคับให้ CORS Filter ทำงานก่อน Security ตัวอื่นทั้งหมดในระดับ System Filter
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public FilterRegistrationBean<CorsFilter> customCorsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 1. ระบุ Domain หลักตรงๆ (รวมถึง Domain ใน Vercel Deployment)
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "https://pkshop-auto-part.vercel.app",
-                "https://pkshop-auto-part-7fl6zakc2-kengsos-projects.vercel.app"
-        ));
-
-        // 2. ใช้ Pattern สำรองสำหรับ Preview Deployments อื่นๆ
+        // อนุญาต Domain Vercel ทั้งหมด และ Localhost
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
@@ -51,14 +45,17 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return source;
+
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE); // ✅ ตั้งค่าลำดับความสำคัญสูงสุด
+        return bean;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // ✅ รวมไว้บรรทัดเดียว
-                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable()) // ✅ ปิด cors ใน SecurityChain เพื่อไปใช้ customCorsFilter ด้านบนแทน
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable())
