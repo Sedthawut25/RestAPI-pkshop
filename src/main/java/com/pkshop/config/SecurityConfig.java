@@ -29,10 +29,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
+        // ✅ ปรับส่วน Allowed Origin Patterns ให้ครอบคลุม Subdomain ของ Vercel ทั้งหมด
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
-                "https://*.vercel.app"
+                "https://*.vercel.app",
+                "https://*.*.vercel.app", // ✅ เพิ่มแบบ 2 ชั้นสำหรับ preview URL ของ Vercel
+                "https://pkshop-auto-part-7fl6zakc2-kengsos-projects.vercel.app" // ✅ ใส่ URL ล่าสุดเพิ่มเพื่อความชัวร์
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
