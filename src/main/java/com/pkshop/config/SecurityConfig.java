@@ -1,19 +1,19 @@
 package com.pkshop.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -55,18 +55,18 @@ public class SecurityConfig {
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/upload/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll()
                         .requestMatchers("/", "/error", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/customer/promotions/**").permitAll()
-
+                        
+                        .requestMatchers("/api/upload/**").hasAnyRole("ADMIN", "CUSTOMER") 
+                        
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/supplier/**").hasRole("SUPPLIER")
                         .requestMatchers("/api/customs/**").hasRole("CUSTOMS")
-                        .requestMatchers("/api/auth/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
