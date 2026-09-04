@@ -130,7 +130,7 @@ public class AdminPoController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Quotation not found"));
 
         Long importLotId = null;
-        var lotOptional = importLotRepo.findBySupplierQuotationId(quotationId);
+        var lotOptional = importLotRepo.findFirstBySupplierQuotationIdOrderByIdDesc(quotationId);
         if (lotOptional.isPresent()) {
             importLotId = lotOptional.get().getId();
         }

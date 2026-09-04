@@ -121,18 +121,19 @@ public class OrderService {
             }
 
             if (promo.getPerUserLimit() != null && promo.getPerUserLimit() > 0) {
-                long userUsageCount = promotionUsageRepo.countByCustomer_IdAndPromotion(customer.getId(), promo);
+                long userUsageCount = promotionUsageRepo.countByCustomer_IdAndPromotion_Id(customer.getId(), promo.getId());
                 if (userUsageCount >= promo.getPerUserLimit()) {
                     throw new BadRequestException("คุณใช้โค้ดส่วนลดนี้ครบตามสิทธิ์ที่กำหนดแล้วครับ");
                 }
             }
 
             if (promo.getUsageLimit() != null && promo.getUsageLimit() > 0) {
-                long totalUsageCount = promotionUsageRepo.countByPromotion(promo);
+                long totalUsageCount = promotionUsageRepo.countByPromotion_Id(promo.getId());
                 if (totalUsageCount >= promo.getUsageLimit()) {
                     throw new BadRequestException("โค้ดส่วนลดนี้ถูกใช้ครบตามจำนวนที่กำหนดแล้วครับ");
                 }
             }
+
 
             BigDecimal eligibleTotal =
                     calculateEligibleTotal(promo, req);
@@ -350,6 +351,7 @@ public class OrderService {
                 throw new BadRequestException("ไม่สามารถคืนเงินได้: " + e.getMessage());
             }
         }
+        promotionUsageRepo.deleteByOrder_Id(orderId);
         order.setStatus("CANCELLED");
         orderRepo.save(order);
 

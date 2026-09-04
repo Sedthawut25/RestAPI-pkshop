@@ -235,12 +235,16 @@ public class B2bService {
 
         if (act.equals("REJECT")) {
             q.setStatus("REJECTED");
-            return quotationRepo.save(q);
+            quotationRepo.save(q);
+
+            po.setStatus("REJECTED");
+            poRepo.save(po);
+
+            return q;
         }
 
         q.setStatus("ACCEPTED");
         quotationRepo.save(q);
-
 
         List<SupplierQuotation> others = quotationRepo.findByPurchaseOrderIdAndIdNot(poId, quotationId);
         for (SupplierQuotation other : others) {
@@ -255,4 +259,5 @@ public class B2bService {
 
         return q;
     }
+
 }

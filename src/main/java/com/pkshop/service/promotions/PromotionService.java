@@ -70,6 +70,16 @@ public class PromotionService {
     public Promotion update(Long id, UpdatePromotionRequest req) {
         Promotion p = promoRepo.findById(id).orElseThrow();
 
+        if (req.code() != null && !req.code().isBlank()) {
+            String newCode = req.code().trim().toUpperCase();
+            if (!newCode.equals(p.getCode())) {
+                promoRepo.findByCode(newCode).ifPresent(existing -> {
+                    throw new BadRequestException("Promotion code already exists");
+                });
+                p.setCode(newCode);
+            }
+        }
+
         if (req.name() != null) p.setName(req.name().trim());
         if (req.description() != null) p.setDescription(req.description());
         if (req.promoType() != null) p.setPromoType(req.promoType().trim().toUpperCase());
@@ -86,6 +96,7 @@ public class PromotionService {
         validatePromotion(p);
         return promoRepo.save(p);
     }
+
 
     public Promotion get(Long id) { return promoRepo.findById(id).orElseThrow(); }
 

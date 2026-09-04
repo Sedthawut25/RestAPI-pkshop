@@ -12,6 +12,7 @@ import com.pkshop.dto.customs.CustomsImportDocumentDetailResponse;
 import com.pkshop.service.importflow.ImportFlowService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,8 +41,46 @@ public class CustomsImportDocumentController {
     }
 
     private User currentUser() {
-        return (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new RuntimeException("Unauthenticated user");
+        }
+
+        Object principal = auth.getPrincipal();
+
+        if (principal instanceof com.pkshop.domain.user.entity.User user) {
+            return user;
+        }
+
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            String username = userDetails.getUsername();
+            return userRepo.findByEmail(username)
+                    .orElseGet(() -> {
+                        try {
+                            return userRepo.findById(Long.parseLong(username))
+                                    .orElseThrow(() -> new RuntimeException("User not found: " + username));
+                        } catch (NumberFormatException e) {
+                            throw new RuntimeException("User not found with Email: " + username);
+                        }
+                    });
+        }
+
+        if (principal instanceof String identifier) {
+            return userRepo.findByEmail(identifier)
+                    .orElseGet(() -> {
+                        try {
+                            Long userId = Long.parseLong(identifier);
+                            return userRepo.findById(userId)
+                                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                        } catch (NumberFormatException e) {
+                            throw new RuntimeException("User not found with Email: " + identifier);
+                        }
+                    });
+        }
+
+        throw new RuntimeException("Unsupported principal type: " + principal.getClass().getName());
     }
+
 
     @GetMapping
     public ApiResponse<List<ImportDocument>> list(@RequestParam(defaultValue = "UNDER_REVIEW") String status) {
