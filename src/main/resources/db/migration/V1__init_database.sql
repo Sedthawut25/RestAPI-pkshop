@@ -14,14 +14,13 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
-SET @@SESSION.SQL_LOG_BIN= 0;
+
 
 --
--- GTID state at the beginning of the backup 
+-- GTID state at the beginning of the backup
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '1136c6da-c45b-11f0-80ee-896a7612f69d:1-1689';
+
 
 --
 -- Table structure for table `addresses`
@@ -1504,7 +1503,7 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'customer1@pkshop.com','LOCAL','$2a$10$U3B3dKvurN2B.DikFwTFgOUdyMeyex0/LMcDTtQ4ux4rQbrPXIGra','Customer One','0999999999','ACTIVE','2026-02-21 02:09:43','2026-02-10 23:52:23','2026-02-21 09:09:43'),(2,'admin@pkshop.com','LOCAL','$2a$10$YGk48NFcNmvFP3/0y8rfSOQrL5hhvSnwv6uAlKkiRwiatzVB/2APK','Admin One','0999999999','ACTIVE','2026-02-16 11:57:33','2026-02-11 00:33:02','2026-02-16 18:57:32'),(3,'admin@example.com','LOCAL','$2a$10$2Yr.VRNPBnaOH0vMqaOAcurXrLbtmDUlA/edS2rPYW.dFUJQhiwEW','Admin','0967543401','ACTIVE','2026-02-16 11:48:12','2026-02-16 18:29:46','2026-02-16 18:48:12'),(4,'supplier@pkshop.com','LOCAL','$2a$10$H2WTDkxFknqZy4QsbdtufOpKnun.uC68BCFCZMoG7ZKui.ry4SMdC','Supplier One','0997778888','ACTIVE','2026-08-15 09:08:02','2026-02-16 18:51:09','2026-08-15 16:08:01'),(5,'cus@example.com','LOCAL','$2a$10$OFbmhNJLO1par9vpZWX1IOLWoQ1PKfPmLJTqIEiOP104xefr7Mvqq','Admin','0967543401','ACTIVE','2026-08-16 05:34:37','2026-02-21 09:32:21','2026-08-16 12:34:37'),(6,'supplier_test@pkshop.com','LOCAL','$2a$10$c.dpPUjExvWUfe7vaHJiJ.BUO6Lr3Ke5T9qlhcd74/eQ56Q47k9yS','Supplier Test','0888888888','ACTIVE','2026-08-06 04:10:23','2026-02-21 09:55:58','2026-08-06 11:10:22'),(7,'customs@example.com','LOCAL','$2a$10$nekoVf1qbu6n4J2Xl1Bpa.S5IFctwalCLh6EjMDgc16RJWp.WIMsW','Sedthawut Kaewka','0986471317','ACTIVE','2026-08-13 02:13:09','2026-02-24 18:05:29','2026-08-13 09:13:08'),(8,'autoprime@pkshop.com','LOCAL','$2a$10$5HIAS/lezFyjPIKaE2DDjuw8HAI24k3wK69KalN40bUil3bnwwwa6','AutoPrime','0986471317','ACTIVE','2026-06-10 02:40:56','2026-03-02 16:38:51','2026-06-10 09:40:55'),(9,'globaldrivesupply@phshop.com','LOCAL','$2a$10$ZNX/yV.Vvs6SiLAgixjg.eWRnWV.VJzbg6FOuSypdFftzeF.qAJWi','GlobalDriveSupply','0898562345','ACTIVE','2026-03-17 02:28:39','2026-03-03 07:57:29','2026-03-17 09:28:38'),(10,'proautoparts@phshop.com','LOCAL','$2a$10$BYlo2lVPqKrmCeWCVf1LMeAORUSwIm6Ya05/4FJDSGRNzc7oSOMFC','ProMotionAutoParts','0981234567','ACTIVE',NULL,'2026-03-03 07:59:01',NULL),(11,'nexaauto@pkshop.com','LOCAL','$2a$10$mUTPFZS/4jYNVHwAdqaZYeuoMlMYebz5RjmPKguLucw2CcT8MFpFu','NexaAuto','0874561234','ACTIVE',NULL,'2026-03-03 08:00:19',NULL),(12,'keng@gmail.com','LOCAL','$2a$10$LNSGEz2zNrfU73CYTeR7F.RxkbAwRX6asMDmWlqavt8vauqYDtDS6','Sedthawut Kaewka','0986471317','ACTIVE','2026-08-16 05:28:17','2026-03-03 09:55:53','2026-08-16 12:28:16'),(13,'pond@gmail.com','LOCAL','$2a$10$OcQP7vkPgJZB/YWODWyXFO/ONiMJvxTBmOpbmNyOVA90POxirxIYy','สุกฤษฏ์ ตุดถีนนท์','0824563456','ACTIVE','2026-08-08 02:19:52','2026-05-16 07:43:11','2026-08-08 09:20:05'),(14,'nicha@gmail.com','LOCAL','$2a$10$plTqKJ/DXmoXyeCoWQO9EuRNDnl/MwZ4306EWYQp/j36Fx3w6NrtS','จันทราทิพย์ ขันขจร','0934978880','ACTIVE','2026-08-08 02:19:27','2026-06-10 07:16:18','2026-08-08 09:19:39'),(15,'kareng@gmail.com','LOCAL','$2a$10$criy7CqiCDYTJo6.HY5Xe.5EVSydrsI1pBDeUOc2BbF3w9jIJBij2','สมรวย รวยมาก','0986471317','ACTIVE','2026-08-08 02:18:38','2026-08-08 08:48:59','2026-08-08 09:18:38'),(16,'test.google@gmail.com','GOOGLE',NULL,'Google Tester',NULL,'ACTIVE','2026-08-08 03:29:42','2026-08-08 10:29:41',NULL),(17,'sk.keng2547@gmail.com','GOOGLE',NULL,'Sedthawut Kodlor',NULL,'ACTIVE','2026-08-16 05:28:44','2026-08-11 17:17:08','2026-08-16 12:28:44');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

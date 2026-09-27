@@ -35,8 +35,12 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
-                "https://*.vercel.app"
+                "http://192.168.*:*",    // <-- เพิ่มบรรทัดนี้: อนุญาตให้อุปกรณ์ในวง Wi-Fi เดียวกันเข้าได้
+                "http://10.*:*",          // <-- เผื่อ Wi-Fi บางที่ขึ้นต้นด้วย 10.x.x.x
+                "https://*.vercel.app",
+                "*"                       // <-- หรือใส่ "*" เพื่ออนุญาตทุก Origin ในช่วงทดสอบ
         ));
+
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
