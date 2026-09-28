@@ -60,7 +60,10 @@ public class StripeCheckoutService {
                         .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                         .addPaymentMethodType(SessionCreateParams.PaymentMethodType.PROMPTPAY)
 
-                        // สร้าง URL ย้อนกลับแบบ Dynamic ตามอุปกรณ์ที่เรียกเข้ามา
+                        .setClientReferenceId(order.getOrderNumber())
+                        .putMetadata("orderId", String.valueOf(order.getId()))
+                        .putMetadata("orderNumber", order.getOrderNumber())
+
                         .setSuccessUrl(baseUrl + "/success?orderId=" + order.getId())
                         .setCancelUrl(baseUrl + "/cancel?orderId=" + order.getId())
 
