@@ -22,7 +22,7 @@ public class AdminUserController {
         // ถ้า role=SUPPLIER -> คืนเฉพาะ supplier
         if (role != null && role.equalsIgnoreCase("SUPPLIER")) {
             String sql = """
-                SELECT u.id, u.email, u.full_name
+                SELECT u.id, u.email, u.full_name, u.phone
                 FROM users u
                 JOIN user_roles ur ON ur.user_id = u.id
                 JOIN roles r ON r.id = ur.role_id
@@ -35,6 +35,7 @@ public class AdminUserController {
                             rs.getLong("id"),
                             rs.getString("email"),
                             rs.getString("full_name"),
+                            rs.getString("phone"),
                             rs.getString("full_name") // label
                     )
             );
@@ -50,6 +51,7 @@ public class AdminUserController {
             Long id,
             String email,
             String fullName,
+            String phone,
             String label
     ) {}
 }
