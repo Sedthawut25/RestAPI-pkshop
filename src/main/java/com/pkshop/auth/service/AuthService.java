@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -50,12 +51,14 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest req) {
+        String roleName = req.role() == null ? "" : req.role().trim().toUpperCase(Locale.ROOT);
+        if (!roleName.equals("CUSTOMER") && !roleName.equals("SUPPLIER")) {
+            throw new BadRequestException("สมัครสมาชิกได้เฉพาะ CUSTOMER หรือ SUPPLIER");
+        }
 
         if (userRepo.existsByEmail(req.email())) {
             throw new BadRequestException("Email already exists");
         }
-
-        String roleName = req.role().trim().toUpperCase();
 
         Role role = roleRepo.findByName(roleName)
                 .orElseThrow(() ->
