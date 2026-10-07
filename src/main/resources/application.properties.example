@@ -18,8 +18,8 @@ stripe.secretKey=your_stripe_secret_key_here
 stripe.webhookSecret=your_stripe_webhook_secret_here
 
 # Upload
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
+spring.servlet.multipart.max-file-size=25MB
+spring.servlet.multipart.max-request-size=30MB
 
 server.error.include-message=always
 server.error.include-binding-errors=always
