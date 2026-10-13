@@ -42,8 +42,8 @@ class AuthServiceTest {
     private AuthService authService;
 
     @ParameterizedTest
-    @ValueSource(strings = {"ADMIN", "CUSTOMS"})
-    void publicRegistrationRejectsPrivilegedRoles(String role) {
+    @ValueSource(strings = {"ADMIN", "CUSTOMS", "SUPPLIER"})
+    void publicRegistrationRejectsNonCustomerRoles(String role) {
         RegisterRequest request = new RegisterRequest(
                 "user@example.com",
                 "password123",

@@ -29,6 +29,7 @@ public class SupplierPoController {
     private final PurchaseOrderItemRepository poItemRepo;
     private final SupplierQuotationRepository quotationRepo;
     private final UserRepository userRepo;
+    private final com.pkshop.domain.supplier.repository.SupplierProductRepository supplierProductRepo;
     private final B2bService b2bService;
 
     public SupplierPoController(
@@ -36,12 +37,14 @@ public class SupplierPoController {
             PurchaseOrderItemRepository poItemRepo,
             SupplierQuotationRepository quotationRepo,
             UserRepository userRepo,
+            com.pkshop.domain.supplier.repository.SupplierProductRepository supplierProductRepo,
             B2bService b2bService
     ) {
         this.poRepo = poRepo;
         this.poItemRepo = poItemRepo;
         this.quotationRepo = quotationRepo;
         this.userRepo = userRepo;
+        this.supplierProductRepo = supplierProductRepo;
         this.b2bService = b2bService;
     }
 
@@ -108,10 +111,19 @@ public class SupplierPoController {
             int qty = it.getQty() == null ? 0 : it.getQty();
             BigDecimal line = unit.multiply(BigDecimal.valueOf(qty));
 
+            String supplierSku = null;
+            if (p != null && po.getSupplierUser() != null) {
+                supplierSku = supplierProductRepo
+                        .findBySupplierUser_IdAndProduct_Id(po.getSupplierUser().getId(), p.getId())
+                        .map(com.pkshop.domain.supplier.entity.SupplierProduct::getSupplierSku)
+                        .orElse(null);
+            }
+
             return new SupplierPoDetailResponse.Item(
                     it.getId(),
                     p != null ? p.getId() : null,
                     p != null ? p.getSku() : null,
+                    supplierSku,
                     p != null ? p.getName() : null,
                     it.getQty(),
                     it.getTargetUnitCost(),

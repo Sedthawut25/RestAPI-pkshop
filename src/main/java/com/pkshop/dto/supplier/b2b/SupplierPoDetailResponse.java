@@ -26,6 +26,7 @@ public record SupplierPoDetailResponse(
             Long id,
             Long productId,
             String sku,
+            String supplierSku,
             String productName,
             Integer qty,
             BigDecimal targetUnitCost,

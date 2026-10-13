@@ -9,6 +9,8 @@ import com.pkshop.domain.b2b.repository.PurchaseOrderRepository;
 import com.pkshop.domain.b2b.repository.SupplierQuotationRepository;
 import com.pkshop.domain.catalog.entity.Product;
 import com.pkshop.domain.catalog.repository.ProductRepository;
+import com.pkshop.domain.supplier.entity.SupplierProduct;
+import com.pkshop.domain.supplier.repository.SupplierProductRepository;
 import com.pkshop.domain.user.entity.User;
 import com.pkshop.domain.user.repository.UserRepository;
 import com.pkshop.dto.admin.b2b.AddPoItemRequest;
@@ -21,7 +23,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class B2bService {
@@ -31,19 +37,22 @@ public class B2bService {
     private final PurchaseOrderItemRepository poItemRepo;
     private final ProductRepository productRepo;
     private final UserRepository userRepo;
+    private final SupplierProductRepository supplierProductRepo;
 
     public B2bService(
             SupplierQuotationRepository quotationRepo,
             PurchaseOrderRepository poRepo,
             PurchaseOrderItemRepository poItemRepo,
             ProductRepository productRepo,
-            UserRepository userRepo
+            UserRepository userRepo,
+            SupplierProductRepository supplierProductRepo
     ) {
         this.quotationRepo = quotationRepo;
         this.poRepo = poRepo;
         this.poItemRepo = poItemRepo;
         this.productRepo = productRepo;
         this.userRepo = userRepo;
+        this.supplierProductRepo = supplierProductRepo;
     }
 
     // -------------------------------
@@ -59,6 +68,9 @@ public class B2bService {
 
         User supplierUser = userRepo.findById(supplierUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
+        if (!hasRole(supplierUser, "SUPPLIER")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected account is not a supplier");
+        }
 
         PurchaseOrder po = new PurchaseOrder();
         po.setAdminUser(adminUser);
@@ -93,6 +105,18 @@ public class B2bService {
 
         Product product = productRepo.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        SupplierProduct supplierOffer = supplierProductRepo
+            .findBySupplierUser_IdAndProduct_IdAndActiveTrue(po.getSupplierUser().getId(), productId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Product is not offered by the supplier selected for this PO"
+            ));
+        if (qty < supplierOffer.getMinOrderQty()) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "qty must be at least the supplier minimum order quantity: " + supplierOffer.getMinOrderQty()
+            );
+        }
 
         PurchaseOrderItem item = new PurchaseOrderItem();
         item.setPurchaseOrder(po);
@@ -142,6 +166,36 @@ public class B2bService {
 
         if (req.items() == null || req.items().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quotation items required");
+        }
+
+        Map<Long, Integer> poItemQuantities = new HashMap<>();
+        for (PurchaseOrderItem poItem : poItemRepo.findByPurchaseOrder_Id(poId)) {
+            poItemQuantities.put(poItem.getProduct().getId(), poItem.getQty());
+        }
+        Set<Long> submittedProductIds = new HashSet<>();
+        for (CreateQuotationRequest.Item item : req.items()) {
+            Integer requestedQty = poItemQuantities.get(item.productId());
+            if (requestedQty == null || !submittedProductIds.add(item.productId())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Quotation items must match the products in the purchase order"
+                );
+            }
+            if (item.qty() == null || !item.qty().equals(requestedQty)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Quotation quantity must match the purchase order quantity"
+                );
+            }
+            if (item.quotedUnitCost() == null || item.quotedUnitCost().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "quotedUnitCost must be greater than zero");
+            }
+        }
+        if (submittedProductIds.size() != poItemQuantities.size()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Quotation must include every product in the purchase order"
+            );
         }
 
         SupplierQuotation q = new SupplierQuotation();
@@ -258,6 +312,10 @@ public class B2bService {
         poRepo.save(po);
 
         return q;
+    }
+
+    private boolean hasRole(User user, String roleName) {
+        return user.getRoles().stream().anyMatch(role -> roleName.equalsIgnoreCase(role.getName()));
     }
 
 }

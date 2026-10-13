@@ -26,7 +26,7 @@ public class AdminUserController {
                 FROM users u
                 JOIN user_roles ur ON ur.user_id = u.id
                 JOIN roles r ON r.id = ur.role_id
-                WHERE r.name = 'SUPPLIER'
+                WHERE r.name = 'SUPPLIER' AND u.status = 'ACTIVE'
                 ORDER BY u.full_name ASC
             """;
 

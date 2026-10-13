@@ -52,8 +52,8 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest req) {
         String roleName = req.role() == null ? "" : req.role().trim().toUpperCase(Locale.ROOT);
-        if (!roleName.equals("CUSTOMER") && !roleName.equals("SUPPLIER")) {
-            throw new BadRequestException("สมัครสมาชิกได้เฉพาะ CUSTOMER หรือ SUPPLIER");
+        if (!roleName.equals("CUSTOMER")) {
+            throw new BadRequestException("สมัครสมาชิกสาธารณะได้เฉพาะ CUSTOMER");
         }
 
         if (userRepo.existsByEmail(req.email())) {
