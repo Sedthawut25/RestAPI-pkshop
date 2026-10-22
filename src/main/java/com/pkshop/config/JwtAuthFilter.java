@@ -38,14 +38,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // 1. ถ้าเป็นการเรียก API หมวด Auth (Login/Register) ให้ข้ามการตรวจ Token ทันที
+
         String path = request.getRequestURI();
         if (path.startsWith("/api/auth")) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2. ตรวจสอบ Header
         String auth = request.getHeader("Authorization");
         if (auth == null || !auth.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -69,7 +68,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         catch (ExpiredJwtException e) {
-            // 🚀 ถ้า Token หมดอายุ ให้ตอบกลับเป็น 401 ทันที และหยุดการทำงาน
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

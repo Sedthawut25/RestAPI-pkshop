@@ -35,6 +35,7 @@ public class SecurityConfig {
                 "http://192.168.*:*",
                 "http://10.*:*",
                 "https://*.vercel.app",
+                "http://202.28.34.205:8080",
                 "*"
         ));
 
