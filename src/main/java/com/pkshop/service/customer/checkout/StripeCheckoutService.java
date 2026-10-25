@@ -108,8 +108,7 @@ public class StripeCheckoutService {
                     return origin.replaceAll("/+$", "");
                 }
 
-                // 2. ดึงจาก Referer header (ถ้า Origin ไม่มี)
-                String referer = request.getHeader("Referer");
+                // 3. ดึงจาก Referer header (ถ้า Origin ไม่มี)
                 if (referer != null && !referer.isBlank()) {
                     URI uri = new URI(referer);
                     String portPart = (uri.getPort() != -1 && uri.getPort() != 80 && uri.getPort() != 443) ? ":" + uri.getPort() : "";
