@@ -88,8 +88,22 @@ public class StripeCheckoutService {
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
 
-                // 1. ดึงจาก Origin header (Browser มาตรฐานจะส่งมาเสมอเวลา fetch/axios)
+                // 0. ดึงจาก Header พิเศษที่ frontend ส่งมา (เช่น X-Frontend-Base-Url)
+                String customBase = request.getHeader("X-Frontend-Base-Url");
+                if (customBase != null && !customBase.isBlank()) {
+                    return customBase.replaceAll("/+$", "");
+                }
+
                 String origin = request.getHeader("Origin");
+                String referer = request.getHeader("Referer");
+
+                // 1. ถ้าเรียกมาจาก Server ของอาจารย์ (IP 202.28.34.205) ให้ใส่ /269/# เพื่อรองรับ HashRouter
+                if ((origin != null && origin.contains("202.28.34.205")) ||
+                    (referer != null && referer.contains("202.28.34.205"))) {
+                    return "http://202.28.34.205:8080/269/#";
+                }
+
+                // 2. ดึงจาก Origin header (Browser มาตรฐานจะส่งมาเสมอเวลา fetch/axios)
                 if (origin != null && !origin.isBlank()) {
                     return origin.replaceAll("/+$", "");
                 }
